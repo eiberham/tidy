@@ -1,10 +1,11 @@
-package main
+package local
 
 import (
 	"errors"
 	"fmt"
 	"github.com/joho/godotenv"
 	"os"
+	"os/user"
 	"strings"
 
 	git "gopkg.in/src-d/go-git.v4"
@@ -22,7 +23,7 @@ var (
 )
 
 type Local struct {
-	repository *git.Repository
+	Repository *git.Repository
 }
 
 /**
@@ -34,7 +35,9 @@ func (local *Local) Init() (*git.Repository, error) {
 		return nil, ErrLoadingEnvFile
 	}
 
-	repository, err := git.PlainOpen(os.Getenv("PATH"))
+	usr, _ := user.Current()
+	repository, err := git.PlainOpen(usr.HomeDir + "/" + os.Getenv("TARGET"))
+
 	if err != nil {
 		return nil, ErrNotFound
 	}
@@ -53,7 +56,7 @@ func (local *Local) GetMergedBranches() ([]string, error) {
 	references := local.getLocalBranches()
 
 	targetheads := make(map[string]plumbing.Hash)
-	commits, err := local.repository.Log(&git.LogOptions{From: targetheads[os.Getenv("BRANCH")]})
+	commits, err := local.Repository.Log(&git.LogOptions{From: targetheads[os.Getenv("BRANCH")]})
 	if err != nil {
 		return nil, ErrRetrievingHead
 	}
@@ -93,7 +96,7 @@ func (local *Local) checkoutToTarget() error {
 	fmt.Println(branch)
 	b := plumbing.ReferenceName(branch)
 
-	wt, err := local.repository.Worktree()
+	wt, err := local.Repository.Worktree()
 	if err != nil {
 		panic(err)
 	}
@@ -105,7 +108,7 @@ func (local *Local) checkoutToTarget() error {
 
  */
 func (local *Local) getLocalBranches() storer.ReferenceIter {
-	references, err := local.repository.References()
+	references, err := local.Repository.References()
 	if err != nil {
 		panic(err)
 	}
@@ -122,7 +125,7 @@ func (local *Local) getLocalBranches() storer.ReferenceIter {
  */
 func (local *Local) DeleteBranches(branches []string) (bool, error) {
 	for _, branch := range branches {
-		err := local.repository.DeleteBranch(branch)
+		err := local.Repository.DeleteBranch(branch)
 		if err != nil {
 			return false, ErrDeleteBranch
 		}

@@ -5,16 +5,24 @@ package main
 import (
 	"fmt"
 	"github.com/gotk3/gotk3/gtk"
-)
-
-var (
-	local Local
+	git "github.com/wwleak/tidy/local"
 )
 
 func main() {
 
 	// Initialize GTK without parsing any command line arguments.
 	gtk.Init(nil)
+
+	var err error
+	var local *git.Local
+	repository, err := local.Init()
+	if err != nil {
+		panic(err)
+	}
+
+	instance := git.Local{Repository: repository}
+
+	// repository.GetMergedBranches()
 
 	// Create a new toplevel window, set its title, and connect it to the
 	// "destroy" signal to exit the GTK main loop when it is destroyed.
@@ -27,15 +35,6 @@ func main() {
 		gtk.MainQuit()
 	})
 
-	// Create a new label widget to show in the window.
-	/* l, err := gtk.LabelNew("Keep your local git repo clean once and for all!")
-	if err != nil {
-		fmt.Println("Unable to create label:", err)
-	}
-
-	// Add the label to the window.
-	win.Add(l) */
-
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		fmt.Println("Unable to create box:", err)
@@ -45,6 +44,11 @@ func main() {
 	if err != nil {
 		fmt.Println("Unable to create listbox:", err)
 	}
+
+	branches := []string{}
+	branches, _ = instance.GetMergedBranches()
+	fmt.Println(len(branches))
+	//for _, name := range branches {
 	row, _ := gtk.ListBoxRowNew()
 	hbox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	row.Add(hbox)
@@ -52,7 +56,17 @@ func main() {
 	hbox.PackStart(item, true, true, 0)
 	listbox.Add(row)
 	box.PackStart(listbox, true, true, 0)
+
+	btn, err := gtk.ButtonNewWithLabel("Delete")
+	if err != nil {
+		panic(err)
+	}
+	btn.Connect("clicked", nil)
+	box.Add(btn)
+
 	win.Add(box)
+	//}
+
 	//box.Add(listbox)
 
 	// Set the default window size.
