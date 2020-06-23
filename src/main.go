@@ -39,6 +39,8 @@ func main() {
 		fmt.Println("Unable to create listbox:", err)
 	}
 
+	listbox.SetActivateOnSingleClick(false)
+
 	branches := []string{}
 	branches, _ = instance.GetMergedBranches()
 
