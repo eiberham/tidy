@@ -124,11 +124,13 @@ func (local *Local) getLocalBranches() storer.ReferenceIter {
 
  */
 func (local *Local) DeleteBranches(branches []string) (bool, error) {
-	for _, branch := range branches {
+	for _, name := range branches {
+		branch := fmt.Sprintf("refs/heads/%s", name)
 		err := local.Repository.DeleteBranch(branch)
 		if err != nil {
 			return false, ErrDeleteBranch
 		}
+		break
 	}
 	return true, nil
 }
