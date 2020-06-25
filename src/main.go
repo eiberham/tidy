@@ -4,8 +4,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 	git "github.com/wwleak/tidy/local"
+)
+
+const (
+	COLUMN_NAME = iota
 )
 
 func main() {
@@ -21,6 +26,7 @@ func main() {
 	instance := git.Local{Repository: repository}
 
 	win, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+	win.SetResizable(false)
 	if err != nil {
 		fmt.Println("Unable to create window:", err)
 	}
@@ -34,42 +40,83 @@ func main() {
 		fmt.Println("Unable to create box:", err)
 	}
 
-	listbox, err := gtk.ListBoxNew()
+	tree, err := gtk.TreeViewNew()
 	if err != nil {
-		fmt.Println("Unable to create listbox:", err)
+		fmt.Println("Unable to create treeview:", err)
 	}
 
-	listbox.SetActivateOnSingleClick(false)
+	cell, err := gtk.CellRendererTextNew()
+	if err != nil {
+		fmt.Println("Unable to create cell:", err)
+	}
+
+	text := fmt.Sprintf("Merged Branches")
+	column, err := gtk.TreeViewColumnNewWithAttribute(text, cell, "text", COLUMN_NAME)
+	// column.AddAttribute()
+
+	if err != nil {
+		fmt.Println("Unable to create column:", err)
+	}
+
+	tree.AppendColumn(column)
+
+	store, err := gtk.ListStoreNew(glib.TYPE_STRING)
+
+	tree.SetModel(store)
 
 	branches := []string{}
 	branches, _ = instance.GetMergedBranches()
 
 	for _, name := range branches {
+		addRow(store, name)
+	}
+
+	box.PackStart(tree, true, true, 0)
+
+	/* for _, name := range branches {
 		row, _ := gtk.ListBoxRowNew()
 		hbox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 		row.Add(hbox)
 		item, _ := gtk.LabelNew(name)
 		hbox.PackStart(item, true, true, 0)
-		listbox.Add(row)
+		list.Add(row)
 	}
 
-	box.PackStart(listbox, true, true, 0)
+	box.PackStart(list, true, true, 0) */
 
 	btn, err := gtk.ButtonNewWithLabel("Delete")
 	if err != nil {
 		panic(err)
 	}
-	btn.Connect("clicked", func() {
-		instance.DeleteBranches(branches)
-	})
-	box.Add(btn)
+
+	btn.Connect("clicked", remove(store, git.Local{Repository: repository}, branches))
+
+	box.PackEnd(btn, false, false, 0)
 
 	win.Add(box)
 
-	win.SetDefaultSize(500, 400)
+	win.SetDefaultSize(300, 400)
 
 	win.ShowAll()
 
 	gtk.Main()
 
+}
+
+func addRow(store *gtk.ListStore, text string) {
+	iter := store.Append()
+
+	err := store.Set(iter,
+		[]int{COLUMN_NAME},
+		[]interface{}{text})
+
+	if err != nil {
+		fmt.Println("Unable to add element to:", err)
+	}
+}
+
+func remove(store *gtk.ListStore, instance *git.Local, branches []string) error {
+	instance.DeleteBranches(branches)
+	store.Clear()
+	return nil
 }
