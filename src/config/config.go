@@ -1,13 +1,20 @@
 package config
 
 import (
-	"fmt"
 	"github.com/joho/godotenv"
+	"os"
 )
 
-func Load() {
+// Load loads the .env file configuration
+func Load() error {
 	err := godotenv.Load("../.env")
 	if err != nil {
-		fmt.Println("Error loading the configuration")
+		return err
 	}
+	return nil
+}
+
+// Get returns a particular key's value
+func Get(key string) string {
+	return os.Getenv(key)
 }

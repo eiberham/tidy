@@ -13,6 +13,38 @@ const (
 	COLUMN_NAME = iota
 )
 
+func setupWindow(title string) *gtk.Window {
+	win, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+	if err != nil {
+		panic(err)
+	}
+
+	win.SetTitle(title)
+	win.Connect("destroy", func() {
+		gtk.MainQuit()
+	})
+
+	win.SetPosition(gtk.WIN_POS_CENTER)
+	win.SetDefaultSize(300, 400)
+	win.SetResizable(false)
+
+	return win
+}
+
+func add(store *gtk.ListStore, text string) {
+	iter := store.Append()
+
+	err := store.Set(iter,
+		[]int{COLUMN_NAME},
+		[]interface{}{text})
+
+	if err != nil {
+		panic(err)
+	}
+
+	return
+}
+
 func main() {
 	gtk.Init(nil)
 
@@ -25,29 +57,21 @@ func main() {
 
 	instance := git.Local{Repository: repository}
 
-	win, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
-	win.SetResizable(false)
-	if err != nil {
-		fmt.Println("Unable to create window:", err)
-	}
-	win.SetTitle("Tidy")
-	win.Connect("destroy", func() {
-		gtk.MainQuit()
-	})
+	win := setupWindow("Tidy")
 
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
-		fmt.Println("Unable to create box:", err)
+		panic(err)
 	}
 
 	tree, err := gtk.TreeViewNew()
 	if err != nil {
-		fmt.Println("Unable to create treeview:", err)
+		panic(err)
 	}
 
 	cell, err := gtk.CellRendererTextNew()
 	if err != nil {
-		fmt.Println("Unable to create cell:", err)
+		panic(err)
 	}
 
 	text := fmt.Sprintf("Merged Branches")
@@ -55,7 +79,7 @@ func main() {
 	// column.AddAttribute()
 
 	if err != nil {
-		fmt.Println("Unable to create column:", err)
+		panic(err)
 	}
 
 	tree.AppendColumn(column)
@@ -68,7 +92,7 @@ func main() {
 	branches, _ = instance.GetMergedBranches()
 
 	for _, name := range branches {
-		addRow(store, name)
+		add(store, name)
 	}
 
 	box.PackStart(tree, true, true, 0)
@@ -87,22 +111,8 @@ func main() {
 
 	win.Add(box)
 
-	win.SetDefaultSize(300, 400)
-
 	win.ShowAll()
 
 	gtk.Main()
 
-}
-
-func addRow(store *gtk.ListStore, text string) {
-	iter := store.Append()
-
-	err := store.Set(iter,
-		[]int{COLUMN_NAME},
-		[]interface{}{text})
-
-	if err != nil {
-		fmt.Println("Unable to add element to:", err)
-	}
 }
