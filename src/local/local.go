@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os/user"
+	"sort"
 	"strings"
 
 	"github.com/wwleak/tidy/config"
@@ -80,6 +81,8 @@ func (local *Local) GetMergedBranches() ([]string, error) {
 		}
 		return nil
 	})
+
+	sort.Strings(merged)
 
 	return merged, nil
 }
