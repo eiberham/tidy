@@ -7,11 +7,16 @@ import (
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 	git "github.com/wwleak/tidy/local"
+	// "github.com/wwleak/tidy/settings"
 )
 
 const (
 	COLUMN_NAME = iota
 )
+
+/*var (
+	s *settings.Settings
+)*/
 
 func setupWindow(title string) *gtk.Window {
 	win, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
@@ -46,9 +51,17 @@ func add(store *gtk.ListStore, text string) {
 }
 
 func main() {
+	var err error
+
+	/*config, err := s.Open("/tmp/settings.yaml")
+	if err != nil {
+		fmt.Println("Something bad happened")
+	}
+
+	fmt.Println("Done, %T", config)*/
+
 	gtk.Init(nil)
 
-	var err error
 	var local *git.Local
 	repository, err := local.Init()
 	if err != nil {
@@ -58,6 +71,31 @@ func main() {
 	instance := git.Local{Repository: repository}
 
 	win := setupWindow("Tidy")
+
+	// Menu bar
+
+	menubar, err := gtk.MenuBarNew()
+
+	menuitem, err := gtk.MenuItemNewWithLabel("File")
+
+	filemenu, err := gtk.MenuNew()
+
+	fileitem, err := gtk.MenuItemNewWithLabel("Settings")
+
+	closeitem, err := gtk.MenuItemNewWithLabel("Close")
+
+	closeitem.Connect("activate", func() {
+		win.Close()
+	})
+
+	filemenu.Append(fileitem)
+	filemenu.Append(closeitem)
+
+	menuitem.SetSubmenu(filemenu)
+
+	menubar.Append(menuitem)
+
+	// End
 
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
@@ -95,6 +133,7 @@ func main() {
 		add(store, name)
 	}
 
+	box.PackStart(menubar, false, true, 0)
 	box.PackStart(tree, true, true, 0)
 
 	btn, err := gtk.ButtonNewWithLabel("Delete")
