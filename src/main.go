@@ -88,6 +88,61 @@ func main() {
 		win.Close()
 	})
 
+	fileitem.Connect("activate", func() {
+		sett, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
+		if err != nil {
+			panic(err)
+		}
+
+		sett.SetTitle("Settings")
+		sett.Connect("destroy", func() {
+			sett.Close()
+		})
+		sett.SetPosition(gtk.WIN_POS_CENTER)
+		sett.SetDefaultSize(600, 300)
+		sett.SetResizable(false)
+
+		trgt, err := gtk.LabelNew("Choose your repository")
+		if err != nil {
+			panic(err)
+		}
+
+		repo, err := gtk.FileChooserButtonNew("Repository", gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+		if err != nil {
+			panic(err)
+		}
+
+		grid, err := gtk.GridNew()
+		if err != nil {
+			panic(err)
+		}
+
+		grid.SetOrientation(gtk.ORIENTATION_HORIZONTAL)
+
+		grid.Add(trgt)
+		grid.Add(repo)
+
+		trgt.SetHExpand(true)
+		repo.SetHExpand(true)
+
+		/* rama, err := gtk.LabelNew("What's your branch's name ?")
+		if err != nil {
+			panic(err)
+		}
+
+		box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+		if err != nil {
+			panic(err)
+		} */
+
+		/* box.Add(rama)
+		grid.Add(box) */
+
+		sett.Add(grid)
+
+		sett.ShowAll()
+	})
+
 	filemenu.Append(fileitem)
 	filemenu.Append(closeitem)
 
