@@ -99,46 +99,69 @@ func main() {
 			sett.Close()
 		})
 		sett.SetPosition(gtk.WIN_POS_CENTER)
-		sett.SetDefaultSize(600, 300)
+		sett.SetDefaultSize(300, 300)
 		sett.SetResizable(false)
 
-		trgt, err := gtk.LabelNew("Choose your repository")
+		trgt, err := gtk.LabelNew("1. Choose Your Local Repository Folder")
 		if err != nil {
 			panic(err)
 		}
+		trgt.SetMarginTop(5)
 
 		repo, err := gtk.FileChooserButtonNew("Repository", gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
 		if err != nil {
 			panic(err)
 		}
 
-		grid, err := gtk.GridNew()
-		if err != nil {
-			panic(err)
-		}
-
-		grid.SetOrientation(gtk.ORIENTATION_HORIZONTAL)
-
-		grid.Add(trgt)
-		grid.Add(repo)
-
-		trgt.SetHExpand(true)
-		repo.SetHExpand(true)
-
-		/* rama, err := gtk.LabelNew("What's your branch's name ?")
-		if err != nil {
-			panic(err)
-		}
+		repo.Connect("selection-changed", func() {
+			folder := repo.GetFilename()
+			fmt.Printf("folder: %s ", folder)
+		})
 
 		box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 		if err != nil {
 			panic(err)
-		} */
+		}
 
-		/* box.Add(rama)
-		grid.Add(box) */
+		box.Add(trgt)
+		box.Add(repo)
 
-		sett.Add(grid)
+		/* grid, err := gtk.GridNew()
+		if err != nil {
+			panic(err)
+		}
+
+
+		grid.SetMarginStart(20)
+		grid.SetMarginEnd(20)
+		grid.SetMarginTop(20)
+		grid.SetMarginBottom(20)
+		grid.SetRowSpacing(20)
+		grid.SetColumnSpacing(20)
+		grid.SetOrientation(gtk.ORIENTATION_VERTICAL)
+
+		grid.Attach(trgt, 0, 1, 1, 1)
+		grid.Attach(repo, 1, 20, 1, 1)
+
+		trgt.SetHExpand(true)
+		repo.SetHExpand(true) */
+
+		btn, err := gtk.ButtonNewWithLabel("Save")
+		if err != nil {
+			panic(err)
+		}
+		btn.SetMarginStart(5)
+		btn.SetMarginEnd(5)
+		btn.Connect("clicked", func() {
+			fmt.Println("clicked save btn")
+		})
+
+		/* grid.Attach(btn, 0, 40, 1, 1)
+		sett.Add(grid) */
+
+		box.PackEnd(btn, false, true, 5)
+
+		sett.Add(box)
 
 		sett.ShowAll()
 	})
