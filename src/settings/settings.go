@@ -1,55 +1,44 @@
 package settings
 
 import (
+	"fmt"
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"os"
 )
 
 type Settings struct {
-	Git struct {
-		User string `yaml:"user"`
-		Pass string `yaml:"pass"`
-	} `yaml:"database"`
-	Repository struct {
-		Folder string `yaml:"folder"`
-		Branch string `yaml:"branch"`
-	} `yaml:"database"`
+	Repository Repository `yaml:"repository"`
+}
+
+type Repository struct {
+	Folder string `yaml:"folder"`
+	Branch string `yaml:"branch"`
 }
 
 func (settings *Settings) Open(filename string) (*Settings, error) {
-	_, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		_, err := os.Create("/tmp/settings.yaml")
-		if err != nil {
+	file, err := ioutil.ReadFile(filename)
+	if err != nil {
+		if os.IsNotExist(err) {
+			_, err := os.Create(filename)
+			if err != nil {
+				fmt.Println("Couldn't create file")
+				panic(err)
+			}
+		}
+		if os.IsPermission(err) {
+			fmt.Println("No permission")
 			panic(err)
 		}
-		/* config Settings
-		return config{
-			Git: {
-				User: ""
-				Pass: ""
-			}
-			Repository: {
-				Folder: ""
-				Branch: ""
-			}
-		} */
 	}
 
-	file, err := os.Open(filename)
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-
-	//var settings Settings
-	decoder := yaml.NewDecoder(file)
-	err = decoder.Decode(&settings)
+	var config *Settings
+	err = yaml.Unmarshal(file, &config)
 	if err != nil {
 		panic(err)
 	}
 
-	return settings, nil
+	return config, nil
 }
 
 func (settings *Settings) Save(filename string) (bool, error) {

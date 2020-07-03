@@ -3,20 +3,22 @@ package main
 // git for-each-ref --format='%(committerdate) %09 %(authorname) %09 %(refname)' --sort=committerdate
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
+
 	git "github.com/wwleak/tidy/local"
-	// "github.com/wwleak/tidy/settings"
+	"github.com/wwleak/tidy/settings"
 )
 
 const (
 	COLUMN_NAME = iota
 )
 
-/*var (
+var (
 	s *settings.Settings
-)*/
+)
 
 func setupWindow(title string) *gtk.Window {
 	win, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
@@ -53,12 +55,15 @@ func add(store *gtk.ListStore, text string) {
 func main() {
 	var err error
 
-	/*config, err := s.Open("/tmp/settings.yaml")
+	config, err := s.Open("/tmp/tidy.yaml")
 	if err != nil {
 		fmt.Println("Something bad happened")
 	}
 
-	fmt.Println("Done, %T", config)*/
+	fmt.Printf("Result: %v\n", config)
+
+	data, err := json.Marshal(config)
+	fmt.Printf("%s\n", data)
 
 	gtk.Init(nil)
 
@@ -102,29 +107,52 @@ func main() {
 		sett.SetDefaultSize(300, 300)
 		sett.SetResizable(false)
 
-		trgt, err := gtk.LabelNew("1. Choose Your Local Repository Folder")
+		trgt, err := gtk.LabelNew("Repository Folder")
 		if err != nil {
 			panic(err)
 		}
 		trgt.SetMarginTop(5)
+		trgt.SetMarginStart(5)
+		trgt.SetHAlign(gtk.ALIGN_START)
 
 		repo, err := gtk.FileChooserButtonNew("Repository", gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
 		if err != nil {
 			panic(err)
 		}
+		repo.SetMarginTop(5)
+		repo.SetMarginStart(5)
+		repo.SetMarginEnd(5)
 
 		repo.Connect("selection-changed", func() {
 			folder := repo.GetFilename()
 			fmt.Printf("folder: %s ", folder)
 		})
 
+		brch, err := gtk.LabelNew("Branch's Name")
+		if err != nil {
+			panic(err)
+		}
+		brch.SetMarginTop(5)
+		brch.SetMarginStart(5)
+		brch.SetHAlign(gtk.ALIGN_START)
+
 		box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 		if err != nil {
 			panic(err)
 		}
 
+		entry, err := gtk.EntryNew()
+		if err != nil {
+			panic(err)
+		}
+		entry.SetMarginTop(5)
+		entry.SetMarginStart(5)
+		entry.SetMarginEnd(5)
+
 		box.Add(trgt)
 		box.Add(repo)
+		box.Add(brch)
+		box.Add(entry)
 
 		/* grid, err := gtk.GridNew()
 		if err != nil {
@@ -214,10 +242,25 @@ func main() {
 	box.PackStart(menubar, false, true, 0)
 	box.PackStart(tree, true, true, 0)
 
+	srh, err := gtk.ButtonNewWithLabel("Search")
+	if err != nil {
+		panic(err)
+	}
+	srh.SetMarginStart(5)
+	srh.SetMarginEnd(5)
+	srh.SetMarginTop(5)
+	srh.SetMarginBottom(5)
+
+	box.PackEnd(srh, false, false, 0)
+
 	btn, err := gtk.ButtonNewWithLabel("Delete")
 	if err != nil {
 		panic(err)
 	}
+	btn.SetMarginStart(5)
+	btn.SetMarginEnd(5)
+	btn.SetMarginTop(5)
+	btn.SetMarginBottom(5)
 
 	btn.Connect("clicked", func() {
 		instance.DeleteBranches(branches)
