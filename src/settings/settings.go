@@ -16,6 +16,7 @@ type Repository struct {
 	Branch string `yaml:"branch"`
 }
 
+// Open reads already existing configuration from YAML file
 func (settings *Settings) Open(filename string) (*Settings, error) {
 	file, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -41,23 +42,15 @@ func (settings *Settings) Open(filename string) (*Settings, error) {
 	return config, nil
 }
 
+// Save saves user configuration in YAML file
 func (settings *Settings) Save(filename string) (bool, error) {
 	_, err := os.Stat(filename)
 	if os.IsNotExist(err) {
 		panic(err)
 	}
 
-	file, err := os.Open(filename)
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-
-	encoder := yaml.NewEncoder(file)
-	err = encoder.Encode(&settings)
-	if err != nil {
-		return false, err
-	}
+	b, err := yaml.Marshal(&settings)
+	ioutil.WriteFile(filename, b, 0644)
 
 	return true, nil
 }
