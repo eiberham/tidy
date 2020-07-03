@@ -182,6 +182,16 @@ func main() {
 		btn.SetMarginEnd(5)
 		btn.Connect("clicked", func() {
 			fmt.Println("clicked save btn")
+
+			branch, _ := entry.GetText()
+
+			s := settings.Settings{
+				settings.Repository{
+					Branch: branch,
+					Folder: repo.GetFilename(),
+				},
+			}
+			s.Save("/tmp/tidy.yaml")
 		})
 
 		/* grid.Attach(btn, 0, 40, 1, 1)
