@@ -2,12 +2,10 @@
 
 Desktop application to manage the deletion of all those local branches that have been already merged into a target branch.
 
-Currently in development **
+GtkInspector is a tool which allow us to inspect all aspects of gtk windows, it's really useful for desktop apps development.
 
-<iframe 
-  title="inspector" 
-  src="https://wiki.gnome.org/action/show/Projects/GTK/Inspector?action=show&redirect=Projects%2FGTK%2B%2FInspector"
-  width="600"
-  height="300"
-  frameborder="0"
-></iframe>
+<p align="center">
+  <img src="inspector.png" name="inspector" />
+</p>
+
+Currently in development **
