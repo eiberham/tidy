@@ -18,9 +18,6 @@ func New(title string) *gtk.Window {
 	}
 
 	win.SetTitle(title)
-	win.Connect("destroy", func() {
-		gtk.MainQuit()
-	})
 
 	win.SetPosition(gtk.WIN_POS_CENTER)
 	win.SetDefaultSize(300, 400)
@@ -45,15 +42,17 @@ func SetLabel(text string) *gtk.Label {
 	if err != nil {
 		panic(err)
 	}
+
 	return label
 }
 
 // ...
-func SetBox(orientation gtk.Orientation) *gtk.Box {
-	box, err := gtk.BoxNew(orientation, 0)
+func SetBox(orientation gtk.Orientation, spacing int) *gtk.Box {
+	box, err := gtk.BoxNew(orientation, spacing)
 	if err != nil {
 		panic(err)
 	}
+
 	return box
 }
 
@@ -97,4 +96,60 @@ func AddTreeViewRow(store *gtk.ListStore, text string) {
 	}
 
 	return
+}
+
+// ...
+func SetMenuBar() *gtk.MenuBar {
+	menubar, err := gtk.MenuBarNew()
+	if err != nil {
+		panic(err)
+	}
+
+	return menubar
+}
+
+// ...
+func SetMenuItem(title string) *gtk.MenuItem {
+	menuitem, err := gtk.MenuItemNewWithLabel(title)
+	if err != nil {
+		panic(err)
+	}
+
+	return menuitem
+}
+
+func SetMenuNew() *gtk.Menu {
+	menu, err := gtk.MenuNew()
+	if err != nil {
+		panic(err)
+	}
+
+	return menu
+}
+
+func SetFolderChooserButton(title string) *gtk.FileChooserButton {
+	button, err := gtk.FileChooserButtonNew(title, gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
+	if err != nil {
+		panic(err)
+	}
+
+	return button
+}
+
+func SetEntry() *gtk.Entry {
+	entry, err := gtk.EntryNew()
+	if err != nil {
+		panic(err)
+	}
+
+	return entry
+}
+
+func SetFrame() *gtk.Frame {
+	frame, err := gtk.FrameNew("")
+	if err != nil {
+		panic(err)
+	}
+
+	return frame
 }
