@@ -10,6 +10,7 @@ import (
 
 	git "github.com/wwleak/tidy/local"
 	"github.com/wwleak/tidy/settings"
+	"github.com/wwleak/tidy/window"
 )
 
 const (
@@ -52,6 +53,20 @@ func add(store *gtk.ListStore, text string) {
 	return
 }
 
+func setupButton(label string) *gtk.Button {
+	button, err := gtk.ButtonNewWithLabel(label)
+	if err != nil {
+		panic(err)
+	}
+
+	button.SetMarginStart(5)
+	button.SetMarginEnd(5)
+	button.SetMarginTop(5)
+	button.SetMarginBottom(5)
+
+	return button
+}
+
 func main() {
 	var err error
 
@@ -75,7 +90,7 @@ func main() {
 
 	instance := git.Local{Repository: repository}
 
-	win := setupWindow("Tidy")
+	win := window.New("Tidy")
 
 	// Menu bar
 
@@ -123,10 +138,10 @@ func main() {
 		repo.SetMarginStart(5)
 		repo.SetMarginEnd(5)
 
-		repo.Connect("selection-changed", func() {
+		/* repo.Connect("selection-changed", func() {
 			folder := repo.GetFilename()
 			fmt.Printf("folder: %s ", folder)
-		})
+		}) */
 
 		brch, err := gtk.LabelNew("Branch's Name")
 		if err != nil {
@@ -154,26 +169,6 @@ func main() {
 		box.Add(brch)
 		box.Add(entry)
 
-		/* grid, err := gtk.GridNew()
-		if err != nil {
-			panic(err)
-		}
-
-
-		grid.SetMarginStart(20)
-		grid.SetMarginEnd(20)
-		grid.SetMarginTop(20)
-		grid.SetMarginBottom(20)
-		grid.SetRowSpacing(20)
-		grid.SetColumnSpacing(20)
-		grid.SetOrientation(gtk.ORIENTATION_VERTICAL)
-
-		grid.Attach(trgt, 0, 1, 1, 1)
-		grid.Attach(repo, 1, 20, 1, 1)
-
-		trgt.SetHExpand(true)
-		repo.SetHExpand(true) */
-
 		btn, err := gtk.ButtonNewWithLabel("Save")
 		if err != nil {
 			panic(err)
@@ -181,21 +176,16 @@ func main() {
 		btn.SetMarginStart(5)
 		btn.SetMarginEnd(5)
 		btn.Connect("clicked", func() {
-			fmt.Println("clicked save btn")
-
 			branch, _ := entry.GetText()
 
-			s := settings.Settings{
+			config := settings.Settings{
 				settings.Repository{
 					Branch: branch,
 					Folder: repo.GetFilename(),
 				},
 			}
-			s.Save("/tmp/tidy.yaml")
+			config.Save("/tmp/tidy.yaml")
 		})
-
-		/* grid.Attach(btn, 0, 40, 1, 1)
-		sett.Add(grid) */
 
 		box.PackEnd(btn, false, true, 5)
 
@@ -252,6 +242,8 @@ func main() {
 	box.PackStart(menubar, false, true, 0)
 	box.PackStart(tree, true, true, 0)
 
+	hbox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+
 	srh, err := gtk.ButtonNewWithLabel("Search")
 	if err != nil {
 		panic(err)
@@ -261,7 +253,7 @@ func main() {
 	srh.SetMarginTop(5)
 	srh.SetMarginBottom(5)
 
-	box.PackEnd(srh, false, false, 0)
+	hbox.PackStart(srh, true, true, 0)
 
 	btn, err := gtk.ButtonNewWithLabel("Delete")
 	if err != nil {
@@ -277,7 +269,9 @@ func main() {
 		store.Clear()
 	})
 
-	box.PackEnd(btn, false, false, 0)
+	hbox.PackEnd(btn, true, true, 0)
+
+	box.PackEnd(hbox, false, false, 0)
 
 	win.Add(box)
 
