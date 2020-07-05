@@ -9,5 +9,3 @@ GtkInspector is a tool which allow us to inspect all aspects of gtk windows, it'
 </p>
 
 Currently in development **
-
-
