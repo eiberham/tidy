@@ -5,11 +5,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gotk3/gotk3/glib"
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 
 	git "github.com/wwleak/tidy/local"
-	"github.com/wwleak/tidy/settings"
+
+	preferences "github.com/wwleak/tidy/settings"
 	"github.com/wwleak/tidy/window"
 )
 
@@ -18,54 +19,8 @@ const (
 )
 
 var (
-	s *settings.Settings
+	s *preferences.Settings
 )
-
-func setupWindow(title string) *gtk.Window {
-	win, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
-	if err != nil {
-		panic(err)
-	}
-
-	win.SetTitle(title)
-	win.Connect("destroy", func() {
-		gtk.MainQuit()
-	})
-
-	win.SetPosition(gtk.WIN_POS_CENTER)
-	win.SetDefaultSize(300, 400)
-	win.SetResizable(false)
-
-	return win
-}
-
-func add(store *gtk.ListStore, text string) {
-	iter := store.Append()
-
-	err := store.Set(iter,
-		[]int{COLUMN_NAME},
-		[]interface{}{text})
-
-	if err != nil {
-		panic(err)
-	}
-
-	return
-}
-
-func setupButton(label string) *gtk.Button {
-	button, err := gtk.ButtonNewWithLabel(label)
-	if err != nil {
-		panic(err)
-	}
-
-	button.SetMarginStart(5)
-	button.SetMarginEnd(5)
-	button.SetMarginTop(5)
-	button.SetMarginBottom(5)
-
-	return button
-}
 
 func main() {
 	var err error
@@ -92,96 +47,62 @@ func main() {
 
 	win := window.New("Tidy")
 
-	// Menu bar
+	win.Connect("destroy", func() {
+		gtk.MainQuit()
+	})
 
-	menubar, err := gtk.MenuBarNew()
+	css, _ := gtk.CssProviderNew()
+	css.LoadFromPath("styles.css")
 
-	menuitem, err := gtk.MenuItemNewWithLabel("File")
+	screen, _ := gdk.ScreenGetDefault()
 
-	filemenu, err := gtk.MenuNew()
+	gtk.AddProviderForScreen(screen, css, gtk.STYLE_PROVIDER_PRIORITY_USER)
 
-	fileitem, err := gtk.MenuItemNewWithLabel("Settings")
+	menubar := window.SetMenuBar()
+	menuitem := window.SetMenuItem("File")
+	filemenu := window.SetMenuNew()
+	settings := window.SetMenuItem("Settings")
+	close := window.SetMenuItem("Close")
 
-	closeitem, err := gtk.MenuItemNewWithLabel("Close")
-
-	closeitem.Connect("activate", func() {
+	close.Connect("activate", func() {
 		win.Close()
 	})
 
-	fileitem.Connect("activate", func() {
-		sett, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
-		if err != nil {
-			panic(err)
-		}
+	settings.Connect("activate", func() {
+		settings := window.New("Settings")
 
-		sett.SetTitle("Settings")
-		sett.Connect("destroy", func() {
-			sett.Close()
+		settings.Connect("destroy", func() {
+			settings.Close()
 		})
-		sett.SetPosition(gtk.WIN_POS_CENTER)
-		sett.SetDefaultSize(300, 300)
-		sett.SetResizable(false)
 
-		trgt, err := gtk.LabelNew("Repository Folder")
-		if err != nil {
-			panic(err)
-		}
-		trgt.SetMarginTop(5)
-		trgt.SetMarginStart(5)
-		trgt.SetHAlign(gtk.ALIGN_START)
+		dirlabel := window.SetLabel("Repository folder")
+		dirlabel.SetName("folder")
+		dirlabel.SetHAlign(gtk.ALIGN_START)
 
-		repo, err := gtk.FileChooserButtonNew("Repository", gtk.FILE_CHOOSER_ACTION_SELECT_FOLDER)
-		if err != nil {
-			panic(err)
-		}
-		repo.SetMarginTop(5)
-		repo.SetMarginStart(5)
-		repo.SetMarginEnd(5)
+		directory := window.SetFolderChooserButton("Repository")
 
-		/* repo.Connect("selection-changed", func() {
-			folder := repo.GetFilename()
-			fmt.Printf("folder: %s ", folder)
-		}) */
+		reflabel := window.SetLabel("Branch's name")
+		reflabel.SetName("branch")
+		reflabel.SetHAlign(gtk.ALIGN_START)
 
-		brch, err := gtk.LabelNew("Branch's Name")
-		if err != nil {
-			panic(err)
-		}
-		brch.SetMarginTop(5)
-		brch.SetMarginStart(5)
-		brch.SetHAlign(gtk.ALIGN_START)
+		box := window.SetBox(gtk.ORIENTATION_VERTICAL, 5)
+		box.SetName("config")
 
-		box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-		if err != nil {
-			panic(err)
-		}
+		branch := window.SetEntry()
 
-		entry, err := gtk.EntryNew()
-		if err != nil {
-			panic(err)
-		}
-		entry.SetMarginTop(5)
-		entry.SetMarginStart(5)
-		entry.SetMarginEnd(5)
+		box.PackStart(dirlabel, false, false, 0)
+		box.PackStart(directory, false, false, 0)
+		box.PackStart(reflabel, false, false, 0)
+		box.PackStart(branch, false, false, 0)
 
-		box.Add(trgt)
-		box.Add(repo)
-		box.Add(brch)
-		box.Add(entry)
-
-		btn, err := gtk.ButtonNewWithLabel("Save")
-		if err != nil {
-			panic(err)
-		}
-		btn.SetMarginStart(5)
-		btn.SetMarginEnd(5)
+		btn := window.SetButton("Save")
 		btn.Connect("clicked", func() {
-			branch, _ := entry.GetText()
+			branch, _ := branch.GetText()
 
-			config := settings.Settings{
-				settings.Repository{
+			config := preferences.Settings{
+				Repository: preferences.Repository{
 					Branch: branch,
-					Folder: repo.GetFilename(),
+					Folder: directory.GetFilename(),
 				},
 			}
 			config.Save("/tmp/tidy.yaml")
@@ -189,87 +110,50 @@ func main() {
 
 		box.PackEnd(btn, false, true, 5)
 
-		sett.Add(box)
+		settings.Add(box)
 
-		sett.ShowAll()
+		settings.ShowAll()
 	})
 
-	filemenu.Append(fileitem)
-	filemenu.Append(closeitem)
-
+	filemenu.Append(settings)
+	filemenu.Append(close)
 	menuitem.SetSubmenu(filemenu)
-
 	menubar.Append(menuitem)
 
-	// End
+	box := window.SetBox(gtk.ORIENTATION_VERTICAL, 0)
 
-	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
-		panic(err)
-	}
+	frame := window.SetFrame()
+	frame.SetName("frame")
 
-	tree, err := gtk.TreeViewNew()
-	if err != nil {
-		panic(err)
-	}
-
-	cell, err := gtk.CellRendererTextNew()
-	if err != nil {
-		panic(err)
-	}
-
-	text := fmt.Sprintf("Merged Branches")
-	column, err := gtk.TreeViewColumnNewWithAttribute(text, cell, "text", COLUMN_NAME)
-	// column.AddAttribute()
-
-	if err != nil {
-		panic(err)
-	}
-
-	tree.AppendColumn(column)
-
-	store, err := gtk.ListStoreNew(glib.TYPE_STRING)
-
-	tree.SetModel(store)
+	tree, store := window.SetTreeView("Merged Branches")
+	// tree.SetName("tree")
+	frame.Add(tree)
 
 	branches := []string{}
 	branches, _ = instance.GetMergedBranches()
 
 	for _, name := range branches {
-		add(store, name)
+		window.AddTreeViewRow(store, name)
 	}
 
 	box.PackStart(menubar, false, true, 0)
-	box.PackStart(tree, true, true, 0)
+	box.PackStart(frame, true, true, 0)
 
-	hbox, _ := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
+	hbox := window.SetBox(gtk.ORIENTATION_HORIZONTAL, 5)
+	hbox.SetName("tools")
 
-	srh, err := gtk.ButtonNewWithLabel("Search")
-	if err != nil {
-		panic(err)
-	}
-	srh.SetMarginStart(5)
-	srh.SetMarginEnd(5)
-	srh.SetMarginTop(5)
-	srh.SetMarginBottom(5)
+	search := window.SetButton("Search")
 
-	hbox.PackStart(srh, true, true, 0)
+	hbox.PackStart(search, false, true, 0)
 
-	btn, err := gtk.ButtonNewWithLabel("Delete")
-	if err != nil {
-		panic(err)
-	}
-	btn.SetMarginStart(5)
-	btn.SetMarginEnd(5)
-	btn.SetMarginTop(5)
-	btn.SetMarginBottom(5)
+	delete := window.SetButton("Delete")
 
-	btn.Connect("clicked", func() {
+	delete.Connect("clicked", func() {
 		instance.DeleteBranches(branches)
 		store.Clear()
 	})
 
-	hbox.PackEnd(btn, true, true, 0)
+	hbox.PackEnd(delete, true, true, 0)
 
 	box.PackEnd(hbox, false, false, 0)
 
