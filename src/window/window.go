@@ -153,3 +153,12 @@ func SetFrame() *gtk.Frame {
 
 	return frame
 }
+
+func SetSwitch() *gtk.Switch {
+	button, err := gtk.SwitchNew()
+	if err != nil {
+		panic(err)
+	}
+
+	return button
+}

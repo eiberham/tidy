@@ -28,7 +28,7 @@ type Local struct {
 }
 
 // Init returns a repository instance or an error otherwise
-func (local *Local) Init() (*git.Repository, error) {
+func (local *Local) Init(folder ...string) (*git.Repository, error) {
 	err := config.Load()
 	if err != nil {
 		return nil, ErrLoadingEnvFile
