@@ -162,3 +162,21 @@ func SetSwitch() *gtk.Switch {
 
 	return button
 }
+
+func SetGrid() *gtk.Grid {
+	grid, err := gtk.GridNew()
+	if err != nil {
+		panic(err)
+	}
+
+	return grid
+}
+
+func SetComboBox() *gtk.ComboBox {
+	combo, err := gtk.ComboBoxNew()
+	if err != nil {
+		panic(err)
+	}
+
+	return combo
+}

@@ -20,6 +20,11 @@ menuitem {
     color: white;
 }
 
+button#delete {
+	background: #cd3e2e;
+	color: white;
+}
+
 #folder {
     margin: 1rem;
 }
@@ -30,4 +35,17 @@ menuitem {
 
 #config {
     margin: 1rem;
+}
+
+grid.horizontal {
+	margin: 1rem;
+}
+
+grid.horizontal switch {
+	margin-left: 1rem;
+}
+
+button#save {
+	background: #8bb158;
+	color: white;
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 
-	git "github.com/wwleak/tidy/local"
+	git "github.com/wwleak/tidy/repository"
 
 	preferences "github.com/wwleak/tidy/settings"
 	"github.com/wwleak/tidy/window"
@@ -40,13 +40,13 @@ func main() {
 	theme.SetProperty("gtk-theme-name", "Numix")
 	theme.SetProperty("gtk-application-prefer-dark-theme", true) */
 
-	var local *git.Local
+	var local *git.Repository
 	repository, err := local.Init()
 	if err != nil {
 		panic(err)
 	}
 
-	instance := git.Local{Repository: repository}
+	instance := git.Repository{Self: repository}
 
 	win := window.New("Tidy")
 
@@ -91,20 +91,33 @@ func main() {
 		box := window.SetBox(gtk.ORIENTATION_VERTICAL, 5)
 		box.SetName("config")
 
-		branch := window.SetEntry()
+		/* branch := window.SetEntry() */
+		branch := window.SetComboBox()
+		branch.SetSensitive(false)
 
 		// I should first create a grid, then attach to the grid a label and the switch widgets
+		grid := window.SetGrid()
+
+		rmtlabel := window.SetLabel("Enable Remote ?")
+
 		toggle := window.SetSwitch()
+
+		grid.Attach(rmtlabel, 0, 100, 250, 100)
+		grid.Attach(toggle, 250, 100, 250, 100)
 
 		box.PackStart(dirlabel, false, false, 0)
 		box.PackStart(directory, false, false, 0)
 		box.PackStart(reflabel, false, false, 0)
 		box.PackStart(branch, false, false, 0)
 		box.PackStart(toggle, false, false, 0)
+		box.PackStart(grid, false, false, 0)
 
 		btn := window.SetButton("Save")
+		btn.SetName("save")
 		btn.Connect("clicked", func() {
-			branch, _ := branch.GetText()
+			// branch, _ := branch.GetText()
+			option, _ := branch.GetEntry()
+			branch, _ := option.GetText()
 
 			config := preferences.Settings{
 				Repository: preferences.Repository{
@@ -156,6 +169,7 @@ func main() {
 	hbox.PackStart(search, false, true, 0)
 
 	delete := window.SetButton("Delete")
+	delete.SetName("delete")
 
 	delete.Connect("clicked", func() {
 		branches := []string{}

@@ -1,4 +1,4 @@
-package local
+package repository
 
 import (
 	"errors"
@@ -23,37 +23,37 @@ var (
 	ErrGettingLocalBranches = errors.New("Something bad happened getting local branches")
 )
 
-type Local struct {
-	Repository *git.Repository
+type Repository struct {
+	Self *git.Repository
 }
 
 // Init returns a repository instance or an error otherwise
-func (local *Local) Init(folder ...string) (*git.Repository, error) {
+func (repository *Repository) Init(folder ...string) (*git.Repository, error) {
 	err := config.Load()
 	if err != nil {
 		return nil, ErrLoadingEnvFile
 	}
 
 	usr, _ := user.Current()
-	repository, err := git.PlainOpen(usr.HomeDir + "/" + config.Get("TARGET"))
+	instance, err := git.PlainOpen(usr.HomeDir + "/" + config.Get("TARGET"))
 
 	if err != nil {
 		return nil, ErrNotFound
 	}
 
-	return repository, nil
+	return instance, nil
 }
 
 // GetMergedBranches returns all those branches that have been merged
-func (local *Local) GetMergedBranches() ([]string, error) {
-	err := local.checkoutToTarget()
+func (repository *Repository) GetMergedBranches() ([]string, error) {
+	err := repository.checkoutToTarget()
 	if err != nil {
 		panic(err)
 	}
-	references := local.getLocalBranches()
+	references := repository.getLocalBranches()
 
 	targetheads := make(map[string]plumbing.Hash)
-	commits, err := local.Repository.Log(&git.LogOptions{From: targetheads[config.Get("BRANCH")]})
+	commits, err := repository.Self.Log(&git.LogOptions{From: targetheads[config.Get("BRANCH")]})
 	if err != nil {
 		return nil, ErrRetrievingHead
 	}
@@ -88,12 +88,12 @@ func (local *Local) GetMergedBranches() ([]string, error) {
 }
 
 // checkoutToTarget switches to the target branch or throws error
-func (local *Local) checkoutToTarget() error {
+func (repository *Repository) checkoutToTarget() error {
 	branch := fmt.Sprintf("refs/heads/%s", config.Get("BRANCH"))
 	fmt.Println(branch)
 	b := plumbing.ReferenceName(branch)
 
-	wt, err := local.Repository.Worktree()
+	wt, err := repository.Self.Worktree()
 	if err != nil {
 		panic(err)
 	}
@@ -102,8 +102,8 @@ func (local *Local) checkoutToTarget() error {
 }
 
 // getLocalBranches returns a ReferenceIter of all filtered branches
-func (local *Local) getLocalBranches() storer.ReferenceIter {
-	references, err := local.Repository.References()
+func (repository *Repository) getLocalBranches() storer.ReferenceIter {
+	references, err := repository.Self.References()
 	if err != nil {
 		panic(err)
 	}
@@ -116,12 +116,12 @@ func (local *Local) getLocalBranches() storer.ReferenceIter {
 }
 
 // DeleteBranches deletes all those merged branches from the local repository
-func (local *Local) DeleteBranches(branches []string) (bool, error) {
+func (repository *Repository) DeleteBranches(branches []string) (bool, error) {
 	for _, name := range branches {
 		branch := fmt.Sprintf("refs/heads/%s", name)
 		b := plumbing.ReferenceName(branch)
 
-		err := local.Repository.Storer.RemoveReference(b)
+		err := repository.Self.Storer.RemoveReference(b)
 		if err != nil {
 			return false, ErrDeleteBranch
 		}
