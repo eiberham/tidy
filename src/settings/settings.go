@@ -1,6 +1,7 @@
 package settings
 
 import (
+	"errors"
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -17,6 +18,10 @@ type Repository struct {
 	Folder string `yaml:"folder"`
 	Branch string `yaml:"branch"`
 }
+
+var (
+	ErrorPreferencesNotSet = errors.New("Preferences hasn't been set yet")
+)
 
 // ...
 func (settings *Settings) Open(filename string) (*Settings, error) {
@@ -41,7 +46,11 @@ func (settings *Settings) Open(filename string) (*Settings, error) {
 		panic(err)
 	}
 
-	return config, nil
+	if config.Repository.Folder != "" && config.Repository.Branch != "" {
+		return config, nil
+	}
+
+	return nil, ErrorPreferencesNotSet
 }
 
 // ...

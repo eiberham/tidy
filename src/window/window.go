@@ -153,3 +153,30 @@ func SetFrame() *gtk.Frame {
 
 	return frame
 }
+
+func SetSwitch() *gtk.Switch {
+	button, err := gtk.SwitchNew()
+	if err != nil {
+		panic(err)
+	}
+
+	return button
+}
+
+func SetGrid() *gtk.Grid {
+	grid, err := gtk.GridNew()
+	if err != nil {
+		panic(err)
+	}
+
+	return grid
+}
+
+func SetComboBox() *gtk.ComboBox {
+	combo, err := gtk.ComboBoxNew()
+	if err != nil {
+		panic(err)
+	}
+
+	return combo
+}

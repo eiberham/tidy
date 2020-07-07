@@ -6,6 +6,25 @@
     margin: 1rem;
 }
 
+window.background {
+    background: #33393b;
+	color: #d9d9d9;
+}
+
+menuitem {
+	color: #1e1e1e;
+}
+
+#frame treeview.view {
+    background: #252526;
+    color: white;
+}
+
+button#delete {
+	background: #cd3e2e;
+	color: white;
+}
+
 #folder {
     margin: 1rem;
 }
@@ -16,4 +35,17 @@
 
 #config {
     margin: 1rem;
+}
+
+grid.horizontal {
+	margin: 1rem;
+}
+
+grid.horizontal switch {
+	margin-left: 1rem;
+}
+
+button#save {
+	background: #8bb158;
+	color: white;
 }
