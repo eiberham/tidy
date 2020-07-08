@@ -4,7 +4,7 @@ package main
 
 import (
 	// "encoding/json"
-	// "fmt"
+	"fmt"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 
@@ -93,8 +93,20 @@ func main() {
 			folder := directory.GetFilename()
 			branch.SetSensitive(true)
 			// TODO: finish this logic
-			repository.Init(folder)
-			branches := repository.GetLocalBranches()
+			fmt.Println(folder)
+
+			self, err := repository.Init(folder)
+			if err != nil {
+				panic(err)
+			}
+
+			repository = &git.Repository{Self: self}
+			branches := repository.GetBranches()
+			fmt.Println(branches)
+
+			for _, item := range branches {
+				branch.AppendText(item)
+			}
 		})
 
 		// I should first create a grid, then attach to the grid a label and the switch widgets
@@ -127,7 +139,16 @@ func main() {
 					Folder: directory.GetFilename(),
 				},
 			}
-			config.Save("/tmp/tidy.yaml")
+			if success, _ := config.Save("/tmp/tidy.yaml"); success {
+				// TODO: send this dialog to a func in window package
+				dialog := gtk.MessageDialogNew(win, gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, gtk.BUTTONS_OK, "Configuration set successfully")
+				dialog.SetTitle("Done")
+				dialog.Show()
+				if dialog.Run() == gtk.RESPONSE_OK {
+					dialog.Destroy()
+				}
+			}
+
 		})
 
 		box.PackEnd(save, false, true, 5)

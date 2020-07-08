@@ -172,8 +172,8 @@ func SetGrid() *gtk.Grid {
 	return grid
 }
 
-func SetComboBox() *gtk.ComboBox {
-	combo, err := gtk.ComboBoxNew()
+func SetComboBox() *gtk.ComboBoxText {
+	combo, err := gtk.ComboBoxTextNewWithEntry()
 	if err != nil {
 		panic(err)
 	}

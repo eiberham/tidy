@@ -102,7 +102,7 @@ func (repository *Repository) checkoutToTarget() error {
 	return wt.Checkout(&git.CheckoutOptions{Create: false, Force: false, Branch: b})
 }
 
-// getLocalBranches returns a ReferenceIter of all filtered branches
+// GetLocalBranches returns a ReferenceIter of all filtered branches
 func (repository *Repository) GetLocalBranches() storer.ReferenceIter {
 	references, err := repository.Self.References()
 	if err != nil {
@@ -129,4 +129,15 @@ func (repository *Repository) DeleteBranches(branches []string) (bool, error) {
 		break
 	}
 	return true, nil
+}
+
+func (repository *Repository) GetBranches() []string {
+	branches, _ := repository.Self.Branches()
+	result := make([]string, 0)
+	branches.ForEach(func(branch *plumbing.Reference) error {
+		result = append(result, branch.Name().Short())
+		return nil
+	})
+
+	return result
 }
