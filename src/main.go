@@ -19,7 +19,7 @@ var (
 	repository *git.Repository
 )
 
-func settingsExists() bool {
+func configured() bool {
 	settings, err := config.Open("/tmp/tidy.yaml")
 	config = settings
 
@@ -27,12 +27,31 @@ func settingsExists() bool {
 		return false
 	}
 
-	/* fmt.Printf("Result: %v\n", config)
-
-	data, err := json.Marshal(config)
-	fmt.Printf("%s\n", data) */
-
 	return true
+}
+
+func load(folder *gtk.FileChooserButton, branch *gtk.ComboBoxText) {
+	folder.SetCurrentFolder(config.Repository.Folder)
+	branch.SetSensitive(true)
+	self, err := repository.Init(config.Repository.Folder)
+	if err != nil {
+		panic(err)
+	}
+
+	repository = &git.Repository{Self: self}
+	branches := repository.GetBranches()
+
+	var selItem int
+	for key, item := range branches[:] {
+		if item == config.Repository.Branch {
+			selItem = key
+		}
+		branch.AppendText(item)
+	}
+
+	branch.SetActive(selItem)
+
+	return
 }
 
 func main() {
@@ -85,15 +104,12 @@ func main() {
 		box := window.SetBox(gtk.ORIENTATION_VERTICAL, 5)
 		box.SetName("config")
 
-		/* branch := window.SetEntry() */
 		branch := window.SetComboBox()
 		branch.SetSensitive(false)
 
 		directory.Connect("selection-changed", func() {
 			folder := directory.GetFilename()
 			branch.SetSensitive(true)
-			// TODO: finish this logic
-			fmt.Println(folder)
 
 			self, err := repository.Init(folder)
 			if err != nil {
@@ -109,22 +125,21 @@ func main() {
 			}
 		})
 
-		// I should first create a grid, then attach to the grid a label and the switch widgets
-		grid := window.SetGrid()
+		/* grid := window.SetGrid()
 
 		rmtlabel := window.SetLabel("Enable Remote ?")
 
 		toggle := window.SetSwitch()
 
 		grid.Attach(rmtlabel, 0, 100, 250, 100)
-		grid.Attach(toggle, 250, 100, 250, 100)
+		grid.Attach(toggle, 250, 100, 250, 100) */
 
 		box.PackStart(dirlabel, false, false, 0)
 		box.PackStart(directory, false, false, 0)
 		box.PackStart(reflabel, false, false, 0)
 		box.PackStart(branch, false, false, 0)
-		box.PackStart(toggle, false, false, 0)
-		box.PackStart(grid, false, false, 0)
+		// box.PackStart(toggle, false, false, 0)
+		// box.PackStart(grid, false, false, 0)
 
 		save := window.SetButton("Save")
 		save.SetName("save")
@@ -140,13 +155,7 @@ func main() {
 				},
 			}
 			if success, _ := config.Save("/tmp/tidy.yaml"); success {
-				// TODO: send this dialog to a func in window package
-				dialog := gtk.MessageDialogNew(win, gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, gtk.BUTTONS_OK, "Configuration set successfully")
-				dialog.SetTitle("Done")
-				dialog.Show()
-				if dialog.Run() == gtk.RESPONSE_OK {
-					dialog.Destroy()
-				}
+				window.ShowDialogMessage(win, gtk.MESSAGE_INFO, "Done", "Configuration set successfully")
 			}
 
 		})
@@ -156,6 +165,10 @@ func main() {
 		settings.Add(box)
 
 		settings.ShowAll()
+
+		if configured() {
+			load(directory, branch)
+		}
 	})
 
 	filemenu.Append(settings)
@@ -169,7 +182,7 @@ func main() {
 	frame.SetName("frame")
 
 	tree, store := window.SetTreeView("Merged Branches")
-	// tree.SetName("tree")
+
 	frame.Add(tree)
 
 	box.PackStart(menubar, false, true, 0)
@@ -181,7 +194,7 @@ func main() {
 	search := window.SetButton("Search")
 
 	search.Connect("clicked", func() {
-		if settingsExists() {
+		if configured() {
 			self, err := repository.Init(config.Repository.Folder)
 			if err != nil {
 				panic(err)
@@ -197,13 +210,7 @@ func main() {
 
 			return
 		}
-
-		dialog := gtk.MessageDialogNew(win, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_OK, "You haven't set any configuration!")
-		dialog.SetTitle("Oops")
-		dialog.Show()
-		if dialog.Run() == gtk.RESPONSE_OK {
-			dialog.Destroy()
-		}
+		window.ShowDialogMessage(win, gtk.MESSAGE_WARNING, "Oops", "You haven't set any configuration!")
 	})
 
 	hbox.PackStart(search, false, true, 0)

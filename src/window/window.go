@@ -180,3 +180,12 @@ func SetComboBox() *gtk.ComboBoxText {
 
 	return combo
 }
+
+func ShowDialogMessage(parent gtk.IWindow, mType gtk.MessageType, title string, message string) {
+	dialog := gtk.MessageDialogNew(parent, gtk.DIALOG_MODAL, gtk.MESSAGE_INFO, gtk.BUTTONS_OK, message)
+	dialog.SetTitle(title)
+	dialog.Show()
+	if dialog.Run() == gtk.RESPONSE_OK {
+		dialog.Destroy()
+	}
+}
