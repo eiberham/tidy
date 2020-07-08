@@ -3,7 +3,7 @@ package repository
 import (
 	"errors"
 	"fmt"
-	"os/user"
+	// "os/user"
 	"sort"
 	"strings"
 
@@ -28,14 +28,15 @@ type Repository struct {
 }
 
 // Init returns a repository instance or an error otherwise
-func (repository *Repository) Init(folder ...string) (*git.Repository, error) {
+func (repository *Repository) Init(folder string) (*git.Repository, error) {
 	err := config.Load()
 	if err != nil {
 		return nil, ErrLoadingEnvFile
 	}
 
-	usr, _ := user.Current()
-	instance, err := git.PlainOpen(usr.HomeDir + "/" + config.Get("TARGET"))
+	/* usr, _ := user.Current()
+	instance, err := git.PlainOpen(usr.HomeDir + "/" + config.Get("TARGET")) */
+	instance, err := git.PlainOpen(folder)
 
 	if err != nil {
 		return nil, ErrNotFound
@@ -50,7 +51,7 @@ func (repository *Repository) GetMergedBranches() ([]string, error) {
 	if err != nil {
 		panic(err)
 	}
-	references := repository.getLocalBranches()
+	references := repository.GetLocalBranches()
 
 	targetheads := make(map[string]plumbing.Hash)
 	commits, err := repository.Self.Log(&git.LogOptions{From: targetheads[config.Get("BRANCH")]})
@@ -102,7 +103,7 @@ func (repository *Repository) checkoutToTarget() error {
 }
 
 // getLocalBranches returns a ReferenceIter of all filtered branches
-func (repository *Repository) getLocalBranches() storer.ReferenceIter {
+func (repository *Repository) GetLocalBranches() storer.ReferenceIter {
 	references, err := repository.Self.References()
 	if err != nil {
 		panic(err)

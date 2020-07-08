@@ -15,11 +15,14 @@ import (
 )
 
 var (
-	config *preferences.Settings
+	config     *preferences.Settings
+	repository *git.Repository
 )
 
-func configurationExists() bool {
-	_, err := config.Open("/tmp/tidy.yaml")
+func settingsExists() bool {
+	settings, err := config.Open("/tmp/tidy.yaml")
+	config = settings
+
 	if err != nil {
 		return false
 	}
@@ -33,20 +36,11 @@ func configurationExists() bool {
 }
 
 func main() {
-	var err error
 
 	gtk.Init(nil)
 	/* theme, _ := gtk.SettingsGetDefault()
 	theme.SetProperty("gtk-theme-name", "Numix")
 	theme.SetProperty("gtk-application-prefer-dark-theme", true) */
-
-	var local *git.Repository
-	repository, err := local.Init()
-	if err != nil {
-		panic(err)
-	}
-
-	instance := git.Repository{Self: repository}
 
 	win := window.New("Tidy")
 
@@ -95,6 +89,14 @@ func main() {
 		branch := window.SetComboBox()
 		branch.SetSensitive(false)
 
+		directory.Connect("selection-changed", func() {
+			folder := directory.GetFilename()
+			branch.SetSensitive(true)
+			// TODO: finish this logic
+			repository.Init(folder)
+			branches := repository.GetLocalBranches()
+		})
+
 		// I should first create a grid, then attach to the grid a label and the switch widgets
 		grid := window.SetGrid()
 
@@ -112,9 +114,9 @@ func main() {
 		box.PackStart(toggle, false, false, 0)
 		box.PackStart(grid, false, false, 0)
 
-		btn := window.SetButton("Save")
-		btn.SetName("save")
-		btn.Connect("clicked", func() {
+		save := window.SetButton("Save")
+		save.SetName("save")
+		save.Connect("clicked", func() {
 			// branch, _ := branch.GetText()
 			option, _ := branch.GetEntry()
 			branch, _ := option.GetText()
@@ -128,7 +130,7 @@ func main() {
 			config.Save("/tmp/tidy.yaml")
 		})
 
-		box.PackEnd(btn, false, true, 5)
+		box.PackEnd(save, false, true, 5)
 
 		settings.Add(box)
 
@@ -158,11 +160,28 @@ func main() {
 	search := window.SetButton("Search")
 
 	search.Connect("clicked", func() {
-		branches := []string{}
-		branches, _ = instance.GetMergedBranches()
+		if settingsExists() {
+			self, err := repository.Init(config.Repository.Folder)
+			if err != nil {
+				panic(err)
+			}
 
-		for _, name := range branches {
-			window.AddTreeViewRow(store, name)
+			repository = &git.Repository{Self: self}
+			branches := []string{}
+			branches, _ = repository.GetMergedBranches()
+
+			for _, name := range branches {
+				window.AddTreeViewRow(store, name)
+			}
+
+			return
+		}
+
+		dialog := gtk.MessageDialogNew(win, gtk.DIALOG_MODAL, gtk.MESSAGE_WARNING, gtk.BUTTONS_OK, "You haven't set any configuration!")
+		dialog.SetTitle("Oops")
+		dialog.Show()
+		if dialog.Run() == gtk.RESPONSE_OK {
+			dialog.Destroy()
 		}
 	})
 
@@ -173,8 +192,8 @@ func main() {
 
 	delete.Connect("clicked", func() {
 		branches := []string{}
-		branches, _ = instance.GetMergedBranches()
-		instance.DeleteBranches(branches)
+		branches, _ = repository.GetMergedBranches()
+		repository.DeleteBranches(branches)
 		store.Clear()
 	})
 
