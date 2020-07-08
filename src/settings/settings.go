@@ -33,9 +33,16 @@ func (settings *Settings) Open(filename string) (*Settings, error) {
 				fmt.Println("Couldn't create file")
 				panic(err)
 			}
+			config := Settings{
+				Repository: Repository{
+					Folder: "",
+					Branch: "",
+				},
+			}
+			b, err := yaml.Marshal(&config)
+			ioutil.WriteFile(filename, b, 0644)
 		}
 		if os.IsPermission(err) {
-			fmt.Println("No permission")
 			panic(err)
 		}
 	}
@@ -46,8 +53,10 @@ func (settings *Settings) Open(filename string) (*Settings, error) {
 		panic(err)
 	}
 
-	if config.Repository.Folder != "" && config.Repository.Branch != "" {
-		return config, nil
+	if config != nil {
+		if config.Repository.Folder != "" && config.Repository.Branch != "" {
+			return config, nil
+		}
 	}
 
 	return nil, ErrorPreferencesNotSet
