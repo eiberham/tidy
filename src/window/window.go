@@ -189,3 +189,12 @@ func ShowDialogMessage(parent gtk.IWindow, mType gtk.MessageType, title string, 
 		dialog.Destroy()
 	}
 }
+
+func SetScrolledWindow() *gtk.ScrolledWindow {
+	scrolled, err := gtk.ScrolledWindowNew(nil, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	return scrolled
+}

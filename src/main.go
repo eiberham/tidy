@@ -57,9 +57,6 @@ func load(folder *gtk.FileChooserButton, branch *gtk.ComboBoxText) {
 func main() {
 
 	gtk.Init(nil)
-	/* theme, _ := gtk.SettingsGetDefault()
-	theme.SetProperty("gtk-theme-name", "Numix")
-	theme.SetProperty("gtk-application-prefer-dark-theme", true) */
 
 	win := window.New("Tidy")
 
@@ -178,12 +175,16 @@ func main() {
 
 	box := window.SetBox(gtk.ORIENTATION_VERTICAL, 0)
 
+	scrolled := window.SetScrolledWindow()
+
 	frame := window.SetFrame()
 	frame.SetName("frame")
 
 	tree, store := window.SetTreeView("Merged Branches")
 
-	frame.Add(tree)
+	scrolled.Add(tree)
+
+	frame.Add(scrolled)
 
 	box.PackStart(menubar, false, true, 0)
 	box.PackStart(frame, true, true, 0)
@@ -202,8 +203,8 @@ func main() {
 
 			repository = &git.Repository{Self: self}
 			branches := []string{}
-			branches, _ = repository.GetMergedBranches()
-
+			branches, _ = repository.GetMergedBranches(config.Repository.Branch)
+			store.Clear()
 			for _, name := range branches {
 				window.AddTreeViewRow(store, name)
 			}
@@ -220,7 +221,7 @@ func main() {
 
 	delete.Connect("clicked", func() {
 		branches := []string{}
-		branches, _ = repository.GetMergedBranches()
+		branches, _ = repository.GetMergedBranches(config.Repository.Branch)
 		repository.DeleteBranches(branches)
 		store.Clear()
 	})

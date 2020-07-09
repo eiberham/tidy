@@ -46,7 +46,7 @@ func (repository *Repository) Init(folder string) (*git.Repository, error) {
 }
 
 // GetMergedBranches returns all those branches that have been merged
-func (repository *Repository) GetMergedBranches() ([]string, error) {
+func (repository *Repository) GetMergedBranches(branch string) ([]string, error) {
 	err := repository.checkoutToTarget()
 	if err != nil {
 		panic(err)
@@ -54,7 +54,7 @@ func (repository *Repository) GetMergedBranches() ([]string, error) {
 	references := repository.GetLocalBranches()
 
 	targetheads := make(map[string]plumbing.Hash)
-	commits, err := repository.Self.Log(&git.LogOptions{From: targetheads[config.Get("BRANCH")]})
+	commits, err := repository.Self.Log(&git.LogOptions{From: targetheads[branch]})
 	if err != nil {
 		return nil, ErrRetrievingHead
 	}
