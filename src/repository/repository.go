@@ -3,11 +3,8 @@ package repository
 import (
 	"errors"
 	"fmt"
-	// "os/user"
 	"sort"
 	"strings"
-
-	"github.com/wwleak/tidy/config"
 
 	git "gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -16,7 +13,6 @@ import (
 )
 
 var (
-	ErrLoadingEnvFile       = errors.New("Couldn't load the .env file")
 	ErrRetrievingHead       = errors.New("Couldn't bring heads from target branch")
 	ErrNotFound             = errors.New("Repository not found in provided path")
 	ErrDeleteBranch         = errors.New("Sorry, couldn't delete branch")
@@ -29,13 +25,6 @@ type Repository struct {
 
 // Init returns a repository instance or an error otherwise
 func (repository *Repository) Init(folder string) (*git.Repository, error) {
-	err := config.Load()
-	if err != nil {
-		return nil, ErrLoadingEnvFile
-	}
-
-	/* usr, _ := user.Current()
-	instance, err := git.PlainOpen(usr.HomeDir + "/" + config.Get("TARGET")) */
 	instance, err := git.PlainOpen(folder)
 
 	if err != nil {
@@ -47,11 +36,11 @@ func (repository *Repository) Init(folder string) (*git.Repository, error) {
 
 // GetMergedBranches returns all those branches that have been merged
 func (repository *Repository) GetMergedBranches(branch string) ([]string, error) {
-	err := repository.checkoutToTarget()
+	err := repository.checkout(branch)
 	if err != nil {
 		panic(err)
 	}
-	references := repository.GetLocalBranches()
+	references := repository.GetLocalBranches(branch)
 
 	targetheads := make(map[string]plumbing.Hash)
 	commits, err := repository.Self.Log(&git.LogOptions{From: targetheads[branch]})
@@ -89,10 +78,9 @@ func (repository *Repository) GetMergedBranches(branch string) ([]string, error)
 }
 
 // checkoutToTarget switches to the target branch or throws error
-func (repository *Repository) checkoutToTarget() error {
-	branch := fmt.Sprintf("refs/heads/%s", config.Get("BRANCH"))
-	fmt.Println(branch)
-	b := plumbing.ReferenceName(branch)
+func (repository *Repository) checkout(branch string) error {
+	target := fmt.Sprintf("refs/heads/%s", branch)
+	b := plumbing.ReferenceName(target)
 
 	wt, err := repository.Self.Worktree()
 	if err != nil {
@@ -103,14 +91,14 @@ func (repository *Repository) checkoutToTarget() error {
 }
 
 // GetLocalBranches returns a ReferenceIter of all filtered branches
-func (repository *Repository) GetLocalBranches() storer.ReferenceIter {
+func (repository *Repository) GetLocalBranches(exclude string) storer.ReferenceIter {
 	references, err := repository.Self.References()
 	if err != nil {
 		panic(err)
 	}
 
 	iter := storer.NewReferenceFilteredIter(func(ref *plumbing.Reference) bool {
-		return strings.Contains(ref.Name().String(), "/heads/") && ref.Name().Short() != "master" && ref.Name().Short() != config.Get("BRANCH")
+		return strings.Contains(ref.Name().String(), "/heads/") && ref.Name().Short() != "master" && ref.Name().Short() != exclude
 	}, references)
 
 	return iter
