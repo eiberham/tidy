@@ -18,6 +18,7 @@ menuitem {
 #frame treeview.view {
     background: #252526;
     color: white;
+    font-size: 12px;
 }
 
 button#delete {
@@ -46,6 +47,16 @@ grid.horizontal switch {
 }
 
 button#save {
-	background: #8bb158;
+	background: #23d184;
 	color: white;
+}
+
+messagedialog.background {
+	background: #33393b;
+	color: white;
+	opacity: 0.9;
+}
+
+.dialog-action-box.horizontal {
+	background: #33393b;
 }
