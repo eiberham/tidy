@@ -3,10 +3,10 @@ package main
 // git for-each-ref --format='%(committerdate) %09 %(authorname) %09 %(refname)' --sort=committerdate
 
 import (
-	// "encoding/json"
 	"fmt"
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
+	"time"
 
 	git "github.com/wwleak/tidy/repository"
 
@@ -107,6 +107,7 @@ func main() {
 		directory.Connect("selection-changed", func() {
 			folder := directory.GetFilename()
 			branch.SetSensitive(true)
+			branch.RemoveAll()
 
 			self, err := repository.Init(folder)
 			if err != nil {
@@ -155,6 +156,7 @@ func main() {
 				window.ShowDialogMessage(win, gtk.MESSAGE_INFO, "Done", "Configuration set successfully")
 			}
 
+			settings.Close()
 		})
 
 		box.PackEnd(save, false, true, 5)
@@ -182,12 +184,18 @@ func main() {
 
 	tree, store := window.SetTreeView("Merged Branches")
 
+	progress := window.SetProgressBar()
+
+	progress.SetMarginStart(10)
+	progress.SetMarginEnd(10)
+
 	scrolled.Add(tree)
 
 	frame.Add(scrolled)
 
 	box.PackStart(menubar, false, true, 0)
 	box.PackStart(frame, true, true, 0)
+	box.PackStart(progress, false, false, 0)
 
 	hbox := window.SetBox(gtk.ORIENTATION_HORIZONTAL, 5)
 	hbox.SetName("tools")
@@ -203,7 +211,24 @@ func main() {
 
 			repository = &git.Repository{Self: self}
 			branches := []string{}
+
+			loading := make(chan bool, 1)
+			loading <- true
+
+			go func() {
+				progress.Show()
+				progress.SetText("Please wait ...")
+				progress.SetShowText(true)
+				for <-loading {
+					progress.Pulse()
+					time.Sleep(time.Duration(100) * time.Millisecond)
+				}
+				progress.Hide()
+				progress.SetShowText(false)
+			}()
+
 			branches, _ = repository.GetMergedBranches(config.Repository.Branch)
+			loading <- false
 			store.Clear()
 			for _, name := range branches {
 				window.AddTreeViewRow(store, name)
@@ -224,6 +249,7 @@ func main() {
 		branches, _ = repository.GetMergedBranches(config.Repository.Branch)
 		repository.DeleteBranches(branches)
 		store.Clear()
+		window.ShowDialogMessage(win, gtk.MESSAGE_INFO, "Done", "The repository has been cleaned up")
 	})
 
 	hbox.PackEnd(delete, true, true, 0)
@@ -233,6 +259,8 @@ func main() {
 	win.Add(box)
 
 	win.ShowAll()
+
+	progress.Hide()
 
 	gtk.Main()
 

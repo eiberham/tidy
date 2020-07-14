@@ -10,6 +10,13 @@ const (
 	COLUMN_NAME = iota
 )
 
+type Margin struct {
+	left   int
+	right  int
+	top    int
+	bottom int
+}
+
 // ...
 func New(title string) *gtk.Window {
 	win, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
@@ -197,4 +204,13 @@ func SetScrolledWindow() *gtk.ScrolledWindow {
 	}
 
 	return scrolled
+}
+
+func SetProgressBar() *gtk.ProgressBar {
+	progress, err := gtk.ProgressBarNew()
+	if err != nil {
+		panic(err)
+	}
+
+	return progress
 }

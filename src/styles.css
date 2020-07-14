@@ -15,10 +15,16 @@ menuitem {
 	color: #1e1e1e;
 }
 
+#frame border{
+	border-left-color: transparent;
+	border-bottom-color: transparent;
+	border-right-color: transparent;
+}
+
 #frame treeview.view {
     background: #252526;
     color: white;
-    font-size: 12px;
+	font-size: 12px;
 }
 
 button#delete {
@@ -44,6 +50,12 @@ grid.horizontal {
 
 grid.horizontal switch {
 	margin-left: 1rem;
+}
+
+progressbar text {
+	color: #8d9fe1;
+	font-size: 12px;
+	font-weight: bold;
 }
 
 button#save {

@@ -114,7 +114,6 @@ func (repository *Repository) DeleteBranches(branches []string) (bool, error) {
 		if err != nil {
 			return false, ErrDeleteBranch
 		}
-		break
 	}
 	return true, nil
 }
