@@ -56,3 +56,9 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 <p align="right">MADE WITH ❤ BY ABRAHAM</p>
+
+<p align="center">
+  <a href="https://www.buymeacoffee.com/acedeno">
+    <img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy @me a coffee" width="232" height="50" />
+  </a>
+</p>
