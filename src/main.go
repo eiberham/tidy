@@ -4,9 +4,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/gotk3/gotk3/gdk"
-	"github.com/gotk3/gotk3/gtk"
+	"runtime"
 	"time"
+
+	"github.com/gotk3/gotk3/gdk"
+	"github.com/gotk3/gotk3/glib"
+	"github.com/gotk3/gotk3/gtk"
 
 	git "github.com/wwleak/tidy/repository"
 
@@ -57,6 +60,7 @@ func load(folder *gtk.FileChooserButton, branch *gtk.ComboBoxText) {
 func main() {
 
 	gtk.Init(nil)
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	win := window.New("Tidy")
 
@@ -75,9 +79,9 @@ func main() {
 	menuitem := window.SetMenuItem("File")
 	filemenu := window.SetMenuNew()
 	settings := window.SetMenuItem("Settings")
-	close := window.SetMenuItem("Close")
+	quit := window.SetMenuItem("Close")
 
-	close.Connect("activate", func() {
+	quit.Connect("activate", func() {
 		win.Close()
 	})
 
@@ -171,7 +175,7 @@ func main() {
 	})
 
 	filemenu.Append(settings)
-	filemenu.Append(close)
+	filemenu.Append(quit)
 	menuitem.SetSubmenu(filemenu)
 	menubar.Append(menuitem)
 
@@ -212,23 +216,27 @@ func main() {
 			repository = &git.Repository{Self: self}
 			branches := []string{}
 
-			loading := make(chan bool, 1)
-			loading <- true
+			done := make(chan bool, 1)
 
 			go func() {
-				progress.Show()
-				progress.SetText("Please wait ...")
-				progress.SetShowText(true)
-				for <-loading {
-					progress.Pulse()
-					time.Sleep(time.Duration(100) * time.Millisecond)
+				glib.IdleAdd(progress.Show)
+				glib.IdleAdd(progress.SetText, "Please wait ...")
+				glib.IdleAdd(progress.SetShowText, true)
+
+				for {
+					select {
+					case <-done:
+						glib.IdleAdd(progress.Hide)
+						glib.IdleAdd(progress.SetShowText, false)
+					default:
+						glib.IdleAdd(progress.Pulse)
+						time.Sleep(time.Duration(100) * time.Millisecond)
+					}
 				}
-				progress.Hide()
-				progress.SetShowText(false)
 			}()
 
 			branches, _ = repository.GetMergedBranches(config.Repository.Branch)
-			loading <- false
+			done <- true
 			store.Clear()
 			for _, name := range branches {
 				window.AddTreeViewRow(store, name)
