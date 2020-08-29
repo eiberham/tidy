@@ -29,7 +29,7 @@ Gtkinspector is a tool which allow us to inspect all aspects of gtk windows, it'
 Clone the repository
 
 ```bash
- git clone https://github.com/wwleak/tidy.git
+ git clone https://github.com/eiberham/tidy.git
 ```
 Build the binary
 
